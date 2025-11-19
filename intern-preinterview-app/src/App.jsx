@@ -7,15 +7,14 @@ import './styles/auth.css';
 import './styles/dashboard.css';
 
 export default function App(){
-  const [route, setRoute] = useState('login'); // 'login' | 'signup' | 'dashboard'
+  const [route, setRoute] = useState('login');
   return (
     <>
       {route === 'login' && <Login onSwitch={setRoute} />}
       {route === 'signup' && <Signup onSwitch={setRoute} />}
       {route === 'dashboard' && <Dashboard />}
-      <div style={{position:'fixed', right:12, bottom:12}}>
-        <button className="btn btn-ghost" onClick={()=>setRoute('dashboard')}>dev: open dashboard</button>
-      </div>
+    
+   
     </>
   );
 }
