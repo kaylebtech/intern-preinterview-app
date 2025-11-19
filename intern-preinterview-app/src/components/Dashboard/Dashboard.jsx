@@ -1,111 +1,196 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getUser, getTransactions, sendMoney } from '../../api'; // correct relative path to src/api.js
 
+export default function Dashboard({ onLogout }) {
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('ks_user')); } catch(_) { return null; }
+  });
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  const [sending, setSending] = useState(false);
 
+  // load user & transactions on mount
+  useEffect(() => {
+    let mounted = true;
+    async function load() {
+      if (!user) {
+        setErr("No user found — please login");
+        setLoading(false);
+        return;
+      }
 
+      setLoading(true);
+      setErr("");
+      try {
+        // ensure latest user data from server:
+        const freshUser = await getUser(user.id);
+        if (!mounted) return;
+        setUser(freshUser);
+        localStorage.setItem('ks_user', JSON.stringify(freshUser));
 
-export default function Dashboard(){
+        // load transactions
+        const txs = await getTransactions(freshUser.id);
+        if (!mounted) return;
+        setTransactions(Array.isArray(txs) ? txs : []);
+      } catch (e) {
+        setErr((e && e.message) || "Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+    return () => { mounted = false; };
+    // intentionally empty deps so this runs once on mount
+    // user is read from localStorage initially; we refresh from server here
+  }, []); // run once
+
+  // handle send money
+  async function handleSendMoney(amount, to, category = 'transfer', description = '') {
+    if (!user) return setErr("No user");
+    const parsed = Number(amount);
+    if (!parsed || Number.isNaN(parsed) || parsed <= 0) {
+      return setErr("Invalid amount");
+    }
+
+    setSending(true);
+    setErr("");
+    try {
+      const tx = await sendMoney({ userId: user.id, amount: parsed, category, description });
+      // update UI: prepend new tx and adjust balance
+      setTransactions(prev => [tx, ...prev]);
+      setUser(prev => {
+        const updated = { ...prev, balance: Number(prev.balance) - Number(parsed) };
+        localStorage.setItem('ks_user', JSON.stringify(updated));
+        return updated;
+      });
+    } catch (e) {
+      setErr((e && e.message) || "Transfer failed");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  // basic logout
+  function logout() {
+    localStorage.removeItem('ks_user');
+    onLogout?.();
+  }
+
+  if (loading) return <div className="card">Loading dashboard...</div>;
+  if (err && !user) return (
+    <div className="card">
+      <div style={{color:'salmon'}}>{err}</div>
+      <button onClick={() => window.location.reload()}>Reload</button>
+    </div>
+  );
+
   return (
-    <div className="df-shell">
-      <div className='content-wrap'>
-        <aside className="df-sidebar">
-            <div className="brand">
-            <div className="logo">K</div>
-            <div className="brand-name">KoinSave</div>
+    <div className="df-main">
+      <header className="df-topbar">
+        <div>
+          <h1 className="hello">Hello <span>{user?.fullName || 'User'}</span></h1>
+          <div className="sub">Welcome back</div>
+        </div>
+
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontWeight:900, fontSize:20, color:'var(--accent)'}}>
+              ${Number(user?.balance || 0).toLocaleString()}
             </div>
-
-        <nav className="nav-list">
-          <button className="nav-item active">Dashboard</button>
-          <button className="nav-item">Report</button>
-          <button className="nav-item">Scan</button>
-          <button className="nav-item">Message <span className="badge">3</span></button>
-          <button className="nav-item">Profile</button>
-          <button className="nav-item">Settings</button>
-        </nav>
-
-        <div className="sidebar-footer">v0.1</div>
-      </aside>
-
-      <main className="df-main">
-        <header className="df-topbar">
-          <div>
-            <h1 className="hello">Hello <span>Stella</span></h1>
-            <div className="sub">Welcome back</div>
+            <div className="muted">Available balance</div>
           </div>
-          <div className="top-actions">
-            <div className="notif">🔔 <span className="notif-count">3</span></div>
-            <div className="avatar">RK</div>
+          <button className="btn" onClick={logout}>Logout</button>
+        </div>
+      </header>
+
+      <section className="df-grid">
+        <div className="left-col">
+          <div className="card quick-actions">
+            <button
+              className="circle"
+              onClick={() => {
+                const raw = prompt("Amount to send");
+                const amount = Number(raw);
+                if (raw === null) return; // cancelled
+                if (Number.isNaN(amount) || amount <= 0) return alert("Please enter a valid amount.");
+                const to = prompt("Recipient (just note):");
+                if (to === null) return; // cancelled
+                handleSendMoney(amount, to, 'transfer', `To ${to}`);
+              }}
+              disabled={sending}
+            >
+              {sending ? 'Sending...' : 'Send'}
+            </button>
+
+            <button className="circle">Receive</button>
+            <button className="circle">F&F</button>
+            <button className="circle">Bill</button>
+            <button className="circle">Grocery</button>
+            <button className="circle">Ticket</button>
           </div>
-        </header>
 
-        <section className="df-grid">
-          <div className="left-col">
-            <div className="quick-actions">
-              <button className="circle">Send</button>
-              <button className="circle">Receive</button>
-              <button className="circle">F&F</button>
-              <button className="circle">Bill</button>
-              <button className="circle">Grocery</button>
-              <button className="circle">Ticket</button>
+          <div className="promo card">
+            <div className="promo-left">🔥 Hot Offer</div>
+            <div className="promo-right">Refer a Friend to Get Free Card Shipping!</div>
+          </div>
+
+          <div className="transactions card">
+            <div className="card-head">
+              <h3>Transactions</h3>
             </div>
 
-            <div className='account-balance'>
-               <h3>$20,000</h3>
-            </div>
-
-            <div className="promo card">
-              <div className="promo-left">🔥 Hot Offer</div>
-              <div className="promo-right">Refer a Friend to Get Free Card Shipping!</div>
-            </div>
-
-            <div className="transactions card">
-              <div className="card-head">
-                <h3>Transactions</h3>
-                <a className="see-all">See all</a>
-              </div>
-
+            {transactions.length === 0 ? (
+              <div className="muted">No transactions yet</div>
+            ) : (
               <ul className="tx-list">
-                <li><strong>Figma</strong><span>$144</span><div className="muted">30 June, 2024 • Visa Card</div></li>
-                <li><strong>Sketch</strong><span>-$138</span><div className="muted">27 June, 2024 • Paypal</div></li>
-                <li><strong>Design Sprint</strong><span>$54</span><div className="muted">20 June, 2024 • Card</div></li>
-                <li><strong>Figma</strong><span>$144</span><div className="muted">30 June, 2024 • Visa Card</div></li>
-                <li><strong>Sketch</strong><span>-$138</span><div className="muted">27 June, 2024 • Paypal</div></li>
-                <li><strong>Design Sprint</strong><span>$54</span><div className="muted">20 June, 2024 • Card</div></li>
+                {transactions.map(tx => (
+                  <li key={tx.id}>
+                    <strong style={{display:'flex', justifyContent:'space-between', gap:12}}>
+                      <span>{tx.description || tx.category || '—'}</span>
+                      <span style={{color: Number(tx.amount) < 0 ? '#ff8b8b' : '#b7f350'}}>
+                        {Number(tx.amount) < 0 ? '-' : '+'}${Math.abs(Number(tx.amount || 0)).toLocaleString()}
+                      </span>
+                    </strong>
+                    <div className="muted">{tx?.date ? new Date(tx.date).toLocaleString() : '—'}</div>
+                  </li>
+                ))}
               </ul>
+            )}
+          </div>
+        </div>
+
+        <aside className="right-col">
+          <div className="big-card card">
+            <div className="chip"></div>
+            <div className="amount">${Number(user?.balance || 0).toLocaleString()}</div>
+            <div className="owner">{user?.fullName}</div>
+            <div className="expiry muted">Demo account</div>
+          </div>
+
+          <div className="mini-row">
+            <div className="card small">
+              <div className="tab">
+                <button className="tab-btn active">Expenses</button>
+                <button className="tab-btn">Income</button>
+              </div>
+              <div className="value">$2,468</div>
+              <div className="muted small">+2% vs last month</div>
+            </div>
+
+            <div className="card small">
+              <div className="title">Integrations</div>
+              <div className="muted small">API connected</div>
             </div>
           </div>
 
-          <aside className="right-col">
-            <div className="big-card card">
-              <div className="chip"></div>
-              <div className="amount">$20,340.98</div>
-              <div className="owner">Rakib Kowshar</div>
-              <div className="expiry">Exp: 06/26</div>
-            </div>
-
-            <div className="mini-row">
-              <div className="card small">
-                <div className="tab">
-                  <button className="tab-btn active">Expenses</button>
-                  <button className="tab-btn">Income</button>
-                </div>
-                <div className="value">$2,468</div>
-                <div className="muted small">+2% vs last month</div>
-              </div>
-
-              <div className="card small">
-                <div className="title">Integrations</div>
-                <div className="muted small">API connected</div>
-              </div>
-            </div>
-
-            <div className="chart card">
-              <div className="muted small">Monthly</div>
-              <div className="chart-placeholder">[ Chart ]</div>
-            </div>
-          </aside>
-        </section>
-        </main>
-      </div>
+          <div className="chart card">
+            <div className="muted small">Monthly</div>
+            <div className="chart-placeholder">[ Chart]</div>
+          </div>
+        </aside>
+      </section>
+      {err && <div style={{color:'salmon', marginTop:10}}>{err}</div>}
     </div>
   );
 }
