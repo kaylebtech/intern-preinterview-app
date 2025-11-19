@@ -129,7 +129,7 @@ export default function Dashboard({ onLogout }) {
           </div>
 
           <div className="promo card">
-            <div className="promo-left">🔥 Hot Offer</div>
+            <div className="promo-left"> Hot Offer</div>
             <div className="promo-right">Refer a Friend to Get Free Card Shipping!</div>
           </div>
 
@@ -160,7 +160,6 @@ export default function Dashboard({ onLogout }) {
 
         <aside className="right-col">
           <div className="big-card card">
-            <div className="chip"></div>
             <div className="amount">${Number(user?.balance || 0).toLocaleString()}</div>
             <div className="owner">{user?.fullName}</div>
             <div className="expiry muted">Demo account</div>
