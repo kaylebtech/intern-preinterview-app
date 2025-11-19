@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getUser, getTransactions, sendMoney } from '../../api'; // correct relative path to src/api.js
+import { getUser, getTransactions, sendMoney } from '../../api'; 
 
 export default function Dashboard({ onLogout }) {
   const [user, setUser] = useState(() => {
@@ -10,7 +10,7 @@ export default function Dashboard({ onLogout }) {
   const [err, setErr] = useState("");
   const [sending, setSending] = useState(false);
 
-  // load user & transactions on mount
+
   useEffect(() => {
     let mounted = true;
     async function load() {
@@ -23,13 +23,13 @@ export default function Dashboard({ onLogout }) {
       setLoading(true);
       setErr("");
       try {
-        // ensure latest user data from server:
+        
         const freshUser = await getUser(user.id);
         if (!mounted) return;
         setUser(freshUser);
         localStorage.setItem('ks_user', JSON.stringify(freshUser));
 
-        // load transactions
+        
         const txs = await getTransactions(freshUser.id);
         if (!mounted) return;
         setTransactions(Array.isArray(txs) ? txs : []);
@@ -41,11 +41,10 @@ export default function Dashboard({ onLogout }) {
     }
     load();
     return () => { mounted = false; };
-    // intentionally empty deps so this runs once on mount
-    // user is read from localStorage initially; we refresh from server here
-  }, []); // run once
 
-  // handle send money
+  }, []);
+
+
   async function handleSendMoney(amount, to, category = 'transfer', description = '') {
     if (!user) return setErr("No user");
     const parsed = Number(amount);
@@ -86,21 +85,20 @@ export default function Dashboard({ onLogout }) {
   );
 
   return (
-    <div className="df-main">
+    <div style={{padding: 12}} className="df-main">
       <header className="df-topbar">
         <div>
           <h1 className="hello">Hello <span>{user?.fullName || 'User'}</span></h1>
           <div className="sub">Welcome back</div>
         </div>
 
-        <div style={{display:'flex',alignItems:'center',gap:12}}>
+        <div style={{display:'flex', padding: 12,  alignItems:'center', gap: 12 }}>
           <div style={{textAlign:'right'}}>
-            <div style={{fontWeight:900, fontSize:20, color:'var(--accent)'}}>
+            <div style={{fontWeight:900, fontSize:20,  color:'var(--accent)'}}>
               ${Number(user?.balance || 0).toLocaleString()}
             </div>
             <div className="muted">Available balance</div>
           </div>
-          <button className="btn" onClick={logout}>Logout</button>
         </div>
       </header>
 
@@ -112,10 +110,10 @@ export default function Dashboard({ onLogout }) {
               onClick={() => {
                 const raw = prompt("Amount to send");
                 const amount = Number(raw);
-                if (raw === null) return; // cancelled
+                if (raw === null) return; 
                 if (Number.isNaN(amount) || amount <= 0) return alert("Please enter a valid amount.");
                 const to = prompt("Recipient (just note):");
-                if (to === null) return; // cancelled
+                if (to === null) return; 
                 handleSendMoney(amount, to, 'transfer', `To ${to}`);
               }}
               disabled={sending}
@@ -190,7 +188,7 @@ export default function Dashboard({ onLogout }) {
           </div>
         </aside>
       </section>
-      {err && <div style={{color:'salmon', marginTop:10}}>{err}</div>}
+      
     </div>
   );
 }

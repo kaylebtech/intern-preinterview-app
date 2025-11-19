@@ -56,9 +56,12 @@ export default function Login({ onSwitch }) {
 
           {error && <div style={{ color: "salmon", marginTop: 12 }}>{error}</div>}
 
-          <div className="form-foot" id="loginDesc">
+          <div style={{marginTop: 20}} className="form-foot" id="loginDesc">
             <span><label style={{ cursor: "pointer" }}><input type="checkbox" style={{ marginRight: 6 }} /> Remember me</label></span>
-            <a href="#" className="small-link">Forgot?</a>
+          </div>
+
+          <div style={{marginTop:30}} className="forgotten Password">
+            <a href="#" className="small-link"> Forgotten Password?</a>
           </div>
         </form>
       </div>
