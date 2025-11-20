@@ -23,12 +23,16 @@ export default function Signup({onSwitch}) {
     }
 
     try {
-      const user = await API.signup({ fullName, email, password });
-      console.log('created user', user);
+      const created = await API.signup({ fullName, email, password });
+      
+
+      localStorage.setItem("ks_user", JSON.stringify(created));
       
       onSwitch?.('dashboard');
     } catch (err) {
       
+      
+
       setError(err.message || 'Signup failed');
     } finally {
       setLoading(false);
