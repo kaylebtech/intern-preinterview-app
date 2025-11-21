@@ -73,7 +73,7 @@ body{
 }
 .input:focus{
   border-color:var(--accent);
-  box-shadow:0 4px 14px rgba(190,219,65,0.25);
+  box-shadow:0 4px 13px rgba(190,219,65,0.25);
 }
 
 /* Layout helpers */
