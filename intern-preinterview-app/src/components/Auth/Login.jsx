@@ -14,15 +14,19 @@ export default function Login({ onSwitch }) {
 
     try {
       setLoading(true);
+
       const user = await API.login(email, password);
-      console.log("login success", user);
+      if (!user) throw new Error("No user record returned from API");
 
-      
       localStorage.setItem("ks_user", JSON.stringify(user));
-
       onSwitch?.("dashboard");
     } catch (err) {
-      setError(err?.message || String(err));
+      const msg = String(err?.message || err || "Login failed");
+      if (msg.includes("auth/invalid-credential") || msg.includes("auth/wrong-password") || msg.includes("auth/user-not-found")) {
+        setError("Invalid email or password");
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -56,12 +60,8 @@ export default function Login({ onSwitch }) {
 
           {error && <div style={{ color: "salmon", marginTop: 12 }}>{error}</div>}
 
-          <div style={{marginTop: 20}} className="form-foot" id="loginDesc">
+          <div style={{ marginTop: 20 }} className="form-foot" id="loginDesc">
             <span><label style={{ cursor: "pointer" }}><input type="checkbox" style={{ marginRight: 6 }} /> Remember me</label></span>
-          </div>
-
-          <div style={{marginTop:30}} className="forgotten Password">
-            <a href="#" className="small-link"> Forgotten Password?</a>
           </div>
         </form>
       </div>
