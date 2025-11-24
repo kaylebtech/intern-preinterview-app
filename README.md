@@ -1,40 +1,79 @@
-KoinSave – Fintech Dashboard (React + MockAPI)
+KoinSave – Fintech Dashboard (React + Firebase Auth + MockAPI)
 
-A simple fintech-style web application built as part of the KoinSave Internship pre-interview assessment.
-It includes authentication, a dashboard UI, mock transactions, and MockAPI integration.
+Live Demo
+🔗 https://github.com/kaylebtech/intern-preinterview-app
 
-⸻
+A pre-interview project built for the KoinSave Internship Assessment.
+
+A lightweight fintech-style web app featuring user authentication, dashboard UI, mock transactions, and a dual-backend setup using Firebase Authentication + MockAPI.
+
 
 Features
 
-✅ Authentication (Mock API)
-	•	Login with email + password
-	•	Signup with form validation
-	•	Error handling (invalid credentials, request errors)
+✅ Authentication (Firebase Auth)
 
-✅ Dashboard
-	•	Displays user balance
-	•	Lists recent transactions
-	•	Ability to send money (creates a transaction + updates balance)
-	•	Fully responsive layout (mobile + desktop)
+Email + password sign up
 
-✅ MockAPI Integration
+Secure login through Firebase
 
-Endpoints used:
-	•	/users
-	•	/transactions
+Full error handling (email already in use, invalid credentials, network errors)
+
+
+✅ Dashboard (MockAPI)
+
+Displays logged-in user profile
+
+Shows account balance
+
+Loads mock transactions
+
+“Send Money” feature:
+
+Creates a new transaction
+
+Deducts amount from user balance
+
+Syncs balance back to MockAPI
+
+
+
+✅ Dual Backend System
+
+This project uses two APIs together:
+
+Purpose	Service
+
+Secure Authentication	Firebase Authentication
+User records + transactions	MockAPI.io
+
+
+This matches real-world structures where auth and data live on separate services.
+
+Endpoints Used (MockAPI)
+
+/users
+
+/transactions
+
 
 Base URL:
-https://691db2c6d58e64bf0d372c91.mockapi.io/user
+
+https://691db2c6d58e64bf0d372c91.mockapi.io
 
 
-⸻
+---
 
 Tech Stack
-	•	React (Vite)
-	•	MockAPI.io (mock backend)
-	•	LocalStorage (stores logged-in user session)
-	•	Custom CSS (fintech gradient UI)
+
+React (Vite)
+
+Firebase Authentication
+
+MockAPI.io
+
+LocalStorage (session persistence)
+
+Custom CSS (clean fintech UI)
 
 ⸻
 
@@ -42,6 +81,8 @@ Project Structure
 
 src/
  ├── api.js
+ ├── auth.js
+ ├── firebase.js
  ├── pages/
  │     ├── Login.jsx
  │     ├── Signup.jsx
@@ -49,6 +90,7 @@ src/
  └── styles/
        ├── auth.css
        └── dashboard.css
+
 
 
 ⸻
@@ -72,14 +114,29 @@ npm run dev -- --host
 
 Testing
 
-Use any user created inside your MockAPI /users endpoint to log in.
+1. Signup
 
-Signup will automatically create a new user in MockAPI.
+Creates a Firebase user
 
-Send Money:
-	•	Deducts amount from balance
-	•	Creates a new transaction on MockAPI
-	•	Updates UI instantly
+Automatically creates a corresponding user on MockAPI
+
+Redirects to dashboard
+
+
+2. Login
+
+Authenticates via Firebase
+
+Fetches the matching MockAPI user using the Firebase uid
+
+
+3. Send Money
+
+Deducts balance
+
+Adds a new transaction to MockAPI
+
+Updates dashboard instantly
 
 ⸻
 
@@ -94,10 +151,17 @@ Just import the GitHub repo and deploy.
 ⸻
 
 Notes
-	•	API is fully mocked (no real money movement)
-	•	Balance updates are simulated using both client and MockAPI backend
-	•	Dashboard autoloads:
-	•	Logged-in user from LocalStorage
-	•	Transactions from MockAPI
+
+All financial data is mocked (no real money movement).
+
+MockAPI stores user records + transactions.
+
+Firebase handles secure authentication.
+
+Dashboard auto-loads:
+
+Current user (from LocalStorage)
+
+User transactions (from MockAPI)
 
 ⸻
