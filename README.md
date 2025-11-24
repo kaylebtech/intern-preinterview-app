@@ -1,7 +1,7 @@
 KoinSave – Fintech Dashboard (React + Firebase Auth + MockAPI)
 
 Live Demo
-🔗 https://github.com/kaylebtech/intern-preinterview-app
+🔗 https://intern-preinterview-app-7cip.vercel.app/
 
 A pre-interview project built for the KoinSave Internship Assessment.
 
